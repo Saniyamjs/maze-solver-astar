@@ -2,7 +2,9 @@ from pyamaze import maze, agent, textLabel
 from queue import PriorityQueue
 
 def h(cell1, cell2):
-    return abs(cell1[0] - cell2[0]) + abs(cell1[1] - cell2[1])
+    x1, y1 = cell1
+    x2, y2 = cell2
+    return abs(x1 - x2) + abs(y1 - y2)
 
 def astar(m):
     start = (m.rows, m.cols)
@@ -14,71 +16,60 @@ def astar(m):
     f_score = {cell: float('inf') for cell in m.grid}
     f_score[start] = h(start, goal)
 
-    from queue import PriorityQueue
     open_set = PriorityQueue()
-    open_set.put((f_score[start], start))
+    open_set.put((f_score[start], h(start, goal), start))
 
     came_from = {}
 
     while not open_set.empty():
-        _, curr = open_set.get()
+        curr_f_score, curr_h_score, curr_cell = open_set.get()
 
-        if curr == goal:
+        if curr_cell == goal:
             break
 
         for d in 'ESNW':
-            if m.maze_map[curr][d] == 1:
+            if m.maze_map[curr_cell][d] == 1:
                 if d == 'E':
-                    child = (curr[0], curr[1] + 1)
+                    child_cell = (curr_cell[0], curr_cell[1] + 1)
                 elif d == 'W':
-                    child = (curr[0], curr[1] - 1)
+                    child_cell = (curr_cell[0], curr_cell[1] - 1)
                 elif d == 'N':
-                    child = (curr[0] - 1, curr[1])
-                else:
-                    child = (curr[0] + 1, curr[1])
+                    child_cell = (curr_cell[0] - 1, curr_cell[1])
+                elif d == 'S':
+                    child_cell = (curr_cell[0] + 1, curr_cell[1])
 
-                new_g = g_score[curr] + 1
-                new_f = new_g + h(child, goal)
+                temp_g_score = g_score[curr_cell] + 1
+                temp_f_score = temp_g_score + h(child_cell, goal)
 
-                if new_f < f_score[child]:
-                    g_score[child] = new_g
-                    f_score[child] = new_f
-                    open_set.put((new_f, child))
-                    came_from[child] = curr
+                if temp_f_score < f_score[child_cell]:
+                    g_score[child_cell] = temp_g_score
+                    f_score[child_cell] = temp_f_score
+                    open_set.put((temp_f_score, h(child_cell, goal), child_cell))
+                    came_from[child_cell] = curr_cell
 
-    path = {}
+    fwd_path = {}
     cell = goal
-    if cell not in came_from:
+
+    if cell not in came_from and cell != start:
         return {}
 
     while cell != start:
         parent = came_from[cell]
-        path[parent] = cell
+        fwd_path[parent] = cell
         cell = parent
 
-    return path
+    return fwd_path
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     m = maze(10, 10)
-
-   
-    m.theme = {
-        "background": "white",
-        "wall": "red",      
-        "cell": "white",
-        "goal": "red"
-    }
-
     m.CreateMaze()
-
     path = astar(m)
 
-    a = agent(m, footprints=True, color="red", shape='circle')
-
+    a = agent(m, footprints=True, color='red')
     m.tracePath({a: path})
 
-    textLabel(m, "A* Path Length", len(path) + 1 if path else 0)
+    path_len = len(path) + 1 if path else 0
+    textLabel(m, 'A Star Path Length', path_len)
 
     m.run()
 

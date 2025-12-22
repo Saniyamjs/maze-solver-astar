@@ -1,5 +1,3 @@
-# Safe color version - works in old pyamaze
-
 from pyamaze import maze, agent, textLabel
 from queue import PriorityQueue
 
@@ -64,10 +62,10 @@ def astar(m):
 if __name__ == "__main__":
     m = maze(10, 10)
 
-    # Allowed colors only
+   
     m.theme = {
         "background": "white",
-        "wall": "red",      # closest to pink
+        "wall": "red",      
         "cell": "white",
         "goal": "red"
     }
@@ -76,7 +74,6 @@ if __name__ == "__main__":
 
     path = astar(m)
 
-    # Use RED agent (closest to pink)
     a = agent(m, footprints=True, color="red", shape='circle')
 
     m.tracePath({a: path})
